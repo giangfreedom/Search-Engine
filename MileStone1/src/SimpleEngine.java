@@ -63,16 +63,19 @@ public class SimpleEngine {
       });
       
       printResults(index, fileNames);
-      
+
+      // Main Querying Begins.
       // Ask the user to search for a term. Stops when user enters 'quit'
       Scanner scan = new Scanner(System.in);
       String userinput = "";
       String[] mDictionary = index.getDictionary();
+      DocumentProcessing processor = new DocumentProcessing();
 
       do{
          System.out.println("Enter a term to search for:  ");
          userinput = scan.nextLine();
          PorterStemmer porter = new PorterStemmer();
+
 
          if(userinput.startsWith(":stem")){
             String stemmed = porter.processToken(userinput.substring(6,userinput.length()));
@@ -82,12 +85,12 @@ public class SimpleEngine {
             //end loop and break
          }
          else{
-            String tokenized = porter.processToken(userinput);
-            if(Arrays.asList(mDictionary).contains(tokenized)){
+
+            List<Integer> results = QueryParser.parseQuery(userinput, index);
+            if(results.size()>0){
                System.out.printf("%-15s  ", userinput+":");
-               for (PositionArray i : index.getPostings(tokenized) ){
-                  System.out.printf("%-15s", fileNames.get(i.getDocID()));
-                  System.out.printf("%-15s", i.getListofPos()  );
+               for (Integer i : results ){
+                  System.out.printf("%-15s", fileNames.get(i));
                   System.out.printf("%-18s", "\n");
                }
                System.out.print("\n");
@@ -111,8 +114,6 @@ public class SimpleEngine {
    */
    private static void indexFile(File file, PositionalInvertedIndex index,
     int docID) {
-      // TO-DO: finish this method for indexing a particular file.
-      // Construct a SimpleTokenStream for the given File.
       // Read each token from the stream and add it to the index.
       int Position  = 0;
       try {
@@ -128,8 +129,7 @@ public class SimpleEngine {
                }
             }
             else
-               index.addTerm( dp.NormalizeToken(t), docID, Position);
-
+               index.addTerm( dp.normalizeToken(t), docID, Position);
             Position++;
          }
       }catch(FileNotFoundException ex){

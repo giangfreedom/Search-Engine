@@ -21,6 +21,6 @@ public class QueryMain {
 
       String query = "Mark Spencer + \"Hey There\" MarkSp" ; //Should query (Mark&&Spencer) || ("Hey There") [1,3]
 
-      System.out.println(QueryParser.parseQuery(query, index));
+
    }
 }

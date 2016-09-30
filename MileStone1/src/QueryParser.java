@@ -1,10 +1,9 @@
+import javafx.geometry.Pos;
+
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Created by Mark on 9/22/2016.
- */
 public class QueryParser {
 
    PositionalInvertedIndex index;
@@ -17,24 +16,41 @@ public class QueryParser {
       this.index = index;
    }
 
-   public static List<Integer> parseQuery(String query, HashMap<String, List<Integer>> index){
+   //Will Return a list of integers corresponding to the document ID's that matched the query.
+   public static List<Integer> parseQuery(String query, PositionalInvertedIndex index){
+      DocumentProcessing dp = new DocumentProcessing();
       List<Integer> postings = new ArrayList<>(); //final merged postings list
-      List<String> parsedquery = new ArrayList<>();
       String[] orsplit = query.split("\\+"); //splits the query by + if there's any
+      for( int i =0; i<orsplit.length;i++){
+         orsplit[i] = dp.normalizeToken(orsplit[i]);
+      }
       System.out.println(Arrays.toString(orsplit));
 
       //loops through the orsplit list
       for(int i=0; i< orsplit.length; i++){
          String[] andmerge = splitQuotes(orsplit[i]);
-         List<Integer> ormerge = index.get(andmerge[0]);
+
+         //will contain document IDs of the current string in andMerge
+         List<Integer> ormerge = getDocList(index.getPostings(andmerge[0]));
+         // perform an and-merge on the doclist of each string in the list
          for(int j=1; j<andmerge.length; j++){
-            ormerge = andMerge(index.get(andmerge[j]), ormerge);
+            ormerge = andMerge(getDocList(index.getPostings(andmerge[j])), ormerge);
          }
-         System.out.println("or merging: "+postings+" "+ormerge);
-         postings = orMerge(ormerge, postings); //have to fix ormerge
+         postings = orMerge(ormerge, postings);
          System.out.println(postings);
       }
       return postings;
+   }
+
+   // Retrieves an Integer List from the List of Position Array containing ONLY Doc IDs
+   private static List<Integer> getDocList(List<PositionArray> posarray){
+      List<Integer> doclist = new ArrayList<>();
+      if(posarray!=null) {
+         for (PositionArray p : posarray) {
+            doclist.add(p.getDocID()); //fills ormerge list with doc ids
+         }
+      }
+      return doclist;
    }
 
    //Splits query phrase into a String[] by surrounding quotes and spaces.
@@ -47,7 +63,7 @@ public class QueryParser {
       return list.toArray(new String[list.size()]);
    }
 
-   public static List<Integer> andMerge(List<Integer> list1, List<Integer> list2){
+   private static List<Integer> andMerge(List<Integer> list1, List<Integer> list2){
       List<Integer> merged = new ArrayList<>();
 
       //if one list is null, return the other.
@@ -77,7 +93,7 @@ public class QueryParser {
       return merged;
    }
 
-   public static List<Integer> orMerge(List<Integer> list1, List<Integer> list2){
+   private static List<Integer> orMerge(List<Integer> list1, List<Integer> list2){
       List<Integer> merged = new ArrayList<>();
 
       //if one list is null, return the other.
@@ -108,20 +124,16 @@ public class QueryParser {
          // add the rest of the one that ended on a smaller position.
          if(list1.size() == list2.size()){
             if (pos1 < pos2) {
-               System.out.println("added all list1 "+ list1);
                merged.addAll(list1.subList(pos1, list1.size()));
             } else if (pos1 > pos2) {
-               System.out.println("added all list2 "+list2);
                merged.addAll(list2.subList(pos2, list2.size()));
             }
          }
          // loop ends and one list is bigger than the other.
          // add the remaining of the longer list.
          else if (list1.size() < list2.size()) {
-            System.out.println("added all list2");
             merged.addAll(list2.subList(pos2, list2.size()));
          } else if (list1.size() > list2.size()) {
-            System.out.println("added all list1");
             merged.addAll(list1.subList(pos1, list1.size()));
          }
       }

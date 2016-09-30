@@ -39,9 +39,9 @@ public class SimpleTokenStream implements TokenStream {
    public String nextToken() {
       if (!hasNextToken())
          return null;
-      
+
       String next = mReader.next();
-      return next.length() > 0 ? next : 
+      return next.length() > 0 ? next :
        hasNextToken() ? nextToken() : null;
    }
 }

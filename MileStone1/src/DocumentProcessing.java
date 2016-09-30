@@ -39,11 +39,12 @@ public class DocumentProcessing {
 	}
 
 	//Normalizes a regular token
-	public String NormalizeToken(String s){
+	public String normalizeToken(String s){
 		s = RemoveAllApostropes(s);
 		s = RemoveAllNonAlphanumeric(s);
 		s = s.toLowerCase();
 		s = PorterStemmer.processToken(s);
+		s = s.replace("-", ""); //for querying userinput with hyphens
 		return s;
 	}
 }

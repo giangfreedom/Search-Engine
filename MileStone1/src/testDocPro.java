@@ -12,8 +12,8 @@ public class testDocPro {
 		System.out.println(b);
 		System.out.println(c);
 		System.out.println();
-		System.out.println(test1.NormalizeToken(a));
-		System.out.println(test1.NormalizeToken(c));
+		System.out.println(test1.normalizeToken(a));
+		System.out.println(test1.normalizeToken(c));
 		System.out.println(test1.SplitHyphenWord(b));
 	}
 
